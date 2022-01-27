@@ -2,6 +2,7 @@
 #define BIANLIB_CMDPANEL_H
 
 #include <vector>
+#include <deque>
 #include "CmdPanel/include/KeyAction.h"
 #include "multiThread/Loop.h"
 
@@ -24,7 +25,7 @@ protected:
     void _start();
     void _run();
     void _updateState();
-    bool _pressKeyboard();
+    void _pressKeyboard();
     void _releaseKeyboard();
 
     static void* _runStatic(void* obj);
@@ -44,6 +45,7 @@ protected:
     std::vector<double> _values;
     std::vector<double> _dValues;
     int _state;
+    std::vector<std::deque<int>> _stateQueue;
     std::vector<int> _outputState;
     std::vector<bool> _getState;
     double _dt;

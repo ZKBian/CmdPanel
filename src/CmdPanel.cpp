@@ -122,15 +122,23 @@ double ValueAction::getDValue(){
 CmdPanel::CmdPanel(std::vector<KeyAction*> events, 
     EmptyAction emptyAction, size_t channelNum, double dt)
     : _emptyAction(emptyAction), _channelNum(channelNum), _dt(dt){
-    _state = _emptyAction.getState();
-
     if(_channelNum < 1){
         std::cout << "[ERROR] CmdPanel::CmdPanel, _channelNum cannot smaller than 1" << std::endl;
         exit(-1);
     }
+
+
+
 // std::cout << "_channelNum: " << _channelNum << std::endl;
     _getState = std::vector<bool>(_channelNum, true);
-    _outputState = std::vector<int>(_channelNum, _state);
+    _outputState = std::vector<int>(_channelNum, _emptyAction.getState());
+    _stateQueue.resize(_channelNum);
+
+    _state = _emptyAction.getState();
+    for(int i(0); i<_channelNum; ++i){
+        _stateQueue.at(i).push_back(_state);
+    }
+
 
 // std::cout << "init _getState: " << _getState.size() << std::endl;
 // std::cout << "init _outputState: " << _outputState.size() << std::endl;
@@ -182,10 +190,15 @@ void CmdPanel::_run(){
 }
 
 void CmdPanel::_updateState(){
+// std::cout << "update state: " << _state << std::endl;
     for(int i(0); i<_channelNum; ++i){
-        if((_outputState.at(i) != _state) && _getState.at(i)){
-            _getState.at(i) = false;
-            _outputState.at(i) = _state;
+        // if((_outputState.at(i) != _state) && _getState.at(i)){
+        //     _getState.at(i) = false;
+        //     _outputState.at(i) = _state;
+        // }
+        if((_stateQueue.at(i).size() == 0) ||
+           (_stateQueue.at(i).back() != _state) ){
+            _stateQueue.at(i).push_back(_state);
         }
     }
 }
@@ -202,7 +215,8 @@ void CmdPanel::_releaseKeyboard(){
     }
 }
 
-bool CmdPanel::_pressKeyboard(){
+void CmdPanel::_pressKeyboard(){
+// std::cout << "c: " << _keyCmd.c << ", _cPast: " << _cPast << std::endl;
     if(strEqual(_keyCmd.c, _cPast)){
         _keyCmd.keyPress = KeyPress::REPEAT;
     }else{
@@ -210,24 +224,27 @@ bool CmdPanel::_pressKeyboard(){
     }
     _cPast = _keyCmd.c;
 
-    bool acted = false;
     // valueAction允许共用按键，例如空格停止
+    // bool acted = false;
     for(int i(0); i<_valueNum; ++i){
-        acted = acted || _valueEvents.at(i).handleCmd(_keyCmd);
+        // acted = acted || _valueEvents.at(i).handleCmd(_keyCmd);
+        _valueEvents.at(i).handleCmd(_keyCmd);
     }
 
+// std::cout << "_keyCmd: " << (int)_keyCmd.keyPress << std::endl;
     for(int i(0); i<_stateNum; ++i){
         if(_stateEvents.at(i).handleCmd(_keyCmd, _state)){
-            return true;
+// std::cout << "true"  << std::endl;
+            return;
         }
     }
 
+    _state = _emptyAction.getState();
 //     if(!acted){
 // std::cout << "acted: " << (int)acted << std::endl;
 //         _releaseKeyboard();
 //     }
 
-    return acted;
 }
 
 
@@ -254,9 +271,18 @@ int CmdPanel::getState(size_t channelID){
             << _channelNum-1 << ", but it is setted to " << channelID << std::endl;
         exit(-1);
     }
-    _getState.at(channelID) = true;
-    int output = _outputState.at(channelID);
-    _outputState.at(channelID) = _emptyAction.getState();
+    // _getState.at(channelID) = true;
+    // int output = _outputState.at(channelID);
+    // _outputState.at(channelID) = _emptyAction.getState();
+    // return output;
+
+    int output;
+    if(_stateQueue.at(channelID).size() > 0){
+        output = _stateQueue.at(channelID).at(0);
+        _stateQueue.at(channelID).pop_front();
+    }else{
+        output = _emptyAction.getState();
+    }
     return output;
 }
 
