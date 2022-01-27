@@ -8,11 +8,13 @@
 class CmdPanel{
 public:
     CmdPanel(std::vector<KeyAction*> events, 
-        EmptyAction emptyAction, double dt);
+        EmptyAction emptyAction, size_t channelNum = 1, double dt = 0.002);
     virtual ~CmdPanel();
-    int getState();
+    int getState(size_t channelID = 0);
     std::vector<double> getValues();
     std::vector<double> getDValues();
+    void setValue(std::vector<double> values);
+    void setValue(double value, size_t id);
     virtual std::string getString(std::string slogan);
 protected:
     virtual void _read() = 0;
@@ -38,11 +40,12 @@ protected:
     size_t _actionNum = 0;
     size_t _stateNum = 0;
     size_t _valueNum = 0;
+    size_t _channelNum;
     std::vector<double> _values;
     std::vector<double> _dValues;
-    int _outputState;
     int _state;
-    bool _getState = true;
+    std::vector<int> _outputState;
+    std::vector<bool> _getState;
     double _dt;
     KeyCmd _keyCmd;
     std::string _cPast = "";

@@ -7,11 +7,11 @@
 KeyAction::KeyAction(ActionType type)
     : _type(type){}
 
-StateAction::StateAction(std::string c, int state)
+StateAction::StateAction(std::string c, int state, KeyPress press)
     :KeyAction(ActionType::STATE){
     _state = state;
     _keyCmdSet.c = c;
-    _keyCmdSet.keyPress = KeyPress::PRESS;
+    _keyCmdSet.keyPress = press;
 }
 
 bool StateAction::handleCmd(KeyCmd keyCmd, int &state){
@@ -120,10 +120,21 @@ double ValueAction::getDValue(){
 /***********************/
 
 CmdPanel::CmdPanel(std::vector<KeyAction*> events, 
-    EmptyAction emptyAction, double dt)
-    : _emptyAction(emptyAction), _dt(dt){
+    EmptyAction emptyAction, size_t channelNum, double dt)
+    : _emptyAction(emptyAction), _channelNum(channelNum), _dt(dt){
     _state = _emptyAction.getState();
-    _outputState = _state;
+
+    if(_channelNum < 1){
+        std::cout << "[ERROR] CmdPanel::CmdPanel, _channelNum cannot smaller than 1" << std::endl;
+        exit(-1);
+    }
+// std::cout << "_channelNum: " << _channelNum << std::endl;
+    _getState = std::vector<bool>(_channelNum, true);
+    _outputState = std::vector<int>(_channelNum, _state);
+
+// std::cout << "init _getState: " << _getState.size() << std::endl;
+// std::cout << "init _outputState: " << _outputState.size() << std::endl;
+
 
     _actionNum = events.size();
     for(int i(0); i<_actionNum; ++i){
@@ -171,9 +182,11 @@ void CmdPanel::_run(){
 }
 
 void CmdPanel::_updateState(){
-    if((_outputState != _state) && _getState){
-        _getState = false;
-        _outputState = _state;
+    for(int i(0); i<_channelNum; ++i){
+        if((_outputState.at(i) != _state) && _getState.at(i)){
+            _getState.at(i) = false;
+            _outputState.at(i) = _state;
+        }
     }
 }
 
@@ -230,10 +243,21 @@ void* CmdPanel::_readStatic(void* obj){
     }
 }
 
-// 防止因为多线程，导致一个状态被错过
-int CmdPanel::getState(){
-    _getState = true;
-    return _outputState;
+// 防止因为多线程，导致一个状态被错过，在不同线程要用不同channelID
+int CmdPanel::getState(size_t channelID){
+// std::cout << "_getState size: " << _getState.size() << std::endl;
+// std::cout << "_outputState size: " << _outputState.size() << std::endl;
+
+    if(channelID > _channelNum-1){
+        std::cout << "[ERROR] CmdPanel::getState(). The CmdPanel only has "
+            << _channelNum << " channels, channelID cannot larger than "
+            << _channelNum-1 << ", but it is setted to " << channelID << std::endl;
+        exit(-1);
+    }
+    _getState.at(channelID) = true;
+    int output = _outputState.at(channelID);
+    _outputState.at(channelID) = _emptyAction.getState();
+    return output;
 }
 
 std::vector<double> CmdPanel::getValues(){
@@ -244,7 +268,27 @@ std::vector<double> CmdPanel::getDValues(){
     return _dValues;
 }
 
-std::string getString(std::string slogan){
+std::string CmdPanel::getString(std::string slogan){
     std::cout << "Do not have function: getString()" << std::endl;
     return "NONE";
+}
+
+void CmdPanel::setValue(std::vector<double> values){
+    if(values.size() == _valueNum){
+        for(int i(0); i<_valueNum; ++i){
+            setValue(values.at(i), i);
+        }
+    }else{
+        std::cout << "[ERROR] CmdPanel::setValue, the size of values is error" << std::endl;
+    }
+}
+
+void CmdPanel::setValue(double value, size_t id){
+    if(id >= _valueNum){
+        std::cout << "[ERROR] CmdPanel::setValue, the id is " << id 
+        << ", but the CmdPanel only has " << _valueNum << " values" << std::endl;
+    }
+    _values.at(id) = value;
+    _dValues.at(id) = 0.0;
+    _valueEvents.at(id).setValue(value);
 }

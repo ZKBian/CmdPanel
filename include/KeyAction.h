@@ -40,10 +40,9 @@ protected:
     ActionType _type;
 };
 
-/* 只能为点按，长按有隐患，可能连续跳状态 */
 class StateAction : public KeyAction{
 public:
-    StateAction(std::string c, int state);
+    StateAction(std::string c, int state, KeyPress press = KeyPress::PRESS);
     virtual ~StateAction(){};
     int getState(){return _state;};
     bool handleCmd(KeyCmd keyCmd, int &state);
@@ -78,6 +77,7 @@ public:
     void setDt(double dt);
     double getValue();
     double getDValue();
+    double setValue(double value){_value = value;}
 private:
     double _value;
     double _changeDirection;
