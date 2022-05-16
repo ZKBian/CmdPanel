@@ -1,4 +1,4 @@
-#include "UnitreeJoystick/UnitreeJoystick.h"
+#include "CmdPanel/UnitreeJoystick.h"
 
 UnitreeJoystick::UnitreeJoystick(std::vector<KeyAction*> events, 
     EmptyAction emptyAction, size_t channelNum, double dt)

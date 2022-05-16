@@ -14,7 +14,25 @@ enum class KeyPress{
 enum class ActionType{
     EMPTY,
     STATE,
-    VALUE
+    VALUE,
+    JOYSTICK
+};
+
+enum class JoystickKey{
+    LEFT_STICK,
+    RIGHT_STICK,
+    D_PAD,
+
+    LB,
+    RB,
+    LT,
+    RT,
+    BACK,
+    START,
+    A,
+    B,
+    X,
+    Y
 };
 
 struct KeyCmd{
@@ -93,6 +111,18 @@ private:
     KeyCmd _goZeroCmdSet;
 
 };
+
+/*
+适用于手柄上的摇杆
+*/
+class JoystickAction : public KeyAction{
+public:
+    JoystickAction(JoystickKey key);
+    ~JoystickAction(){};
+private:
+
+};
+
 
 /* 最初始的ValueAction，多档加减速 */
 /* 可以考虑同一组按键，点按和长按意义不同 */

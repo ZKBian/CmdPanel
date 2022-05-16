@@ -14,7 +14,7 @@
 #include <sys/ioctl.h>
 #include <mutex>
 #include "multiThread/Loop.h"
-#include "CmdPanel/CmdPanel.h"
+#include "CmdPanel/include/CmdPanel.h"
 #include "time/AbsoluteTimer.h"
 
 // #define runTimeStep  0.002  // second, 500Hz

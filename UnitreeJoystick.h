@@ -2,10 +2,10 @@
 #define BIANLIB_UNITREEJOYSTICK_H
 
 // currently used on B1 SDK
-#include "CmdPanel/CmdPanel.h"
+#include "CmdPanel/include/CmdPanel.h"
 #include "UDPPort/UDPPort.h"
-#include "UnitreeJoystick/include/unitree_legged_sdk_B1/unitree_joystick.h"
-#include "UnitreeJoystick/include/unitree_legged_sdk_B1/comm.h"
+#include "CmdPanel/include/unitree_legged_sdk_B1/unitree_joystick.h"
+#include "CmdPanel/include/unitree_legged_sdk_B1/comm.h"
 
 using namespace UNITREE_LEGGED_SDK;
 

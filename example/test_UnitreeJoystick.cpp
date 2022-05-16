@@ -1,4 +1,4 @@
-#include "UnitreeJoystick/UnitreeJoystick.h"
+#include "CmdPanel/UnitreeJoystick.h"
 
 enum class TestEnum{
     enum1,
