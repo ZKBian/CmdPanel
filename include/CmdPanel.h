@@ -6,10 +6,16 @@
 #include "CmdPanel/include/KeyAction.h"
 #include "multiThread/Loop.h"
 
+enum class CmdPanelType{
+    CONTINUE_INPUT,         // Once press a key, the command will be received continuously
+    SWITCH_INPUT            // One press has two commands, one for press, one for release
+};
+
 class CmdPanel{
 public:
     CmdPanel(std::vector<KeyAction*> events, 
-        EmptyAction emptyAction, size_t channelNum = 1, double dt = 0.002);
+        EmptyAction emptyAction, CmdPanelType type, 
+        size_t channelNum = 1, double dt = 0.002);
     virtual ~CmdPanel();
     int getState(size_t channelID = 0);
     std::vector<double> getValues();
@@ -24,7 +30,7 @@ protected:
 
     void _start();
     void _run();
-    void _updateState();
+    void _updateStateValue();
     void _pressKeyboard();
     void _releaseKeyboard();
 
@@ -51,8 +57,10 @@ protected:
     double _dt;
     KeyCmd _keyCmd;
     std::string _cPast = "";
+    // KeyPress _pressPast = KeyPress::RELEASE;
 
     bool _running = true;
+    CmdPanelType _cmdPanelType;
 };
 
 #endif  // BIANLIB_CMDPANEL_H

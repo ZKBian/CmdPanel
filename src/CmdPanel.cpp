@@ -120,16 +120,13 @@ double ValueAction::getDValue(){
 /***********************/
 
 CmdPanel::CmdPanel(std::vector<KeyAction*> events, 
-    EmptyAction emptyAction, size_t channelNum, double dt)
-    : _emptyAction(emptyAction), _channelNum(channelNum), _dt(dt){
+    EmptyAction emptyAction, CmdPanelType type, size_t channelNum, double dt)
+    : _emptyAction(emptyAction), _cmdPanelType(type), _channelNum(channelNum), _dt(dt){
     if(_channelNum < 1){
         std::cout << "[ERROR] CmdPanel::CmdPanel, _channelNum cannot smaller than 1" << std::endl;
         exit(-1);
     }
 
-
-
-// std::cout << "_channelNum: " << _channelNum << std::endl;
     _getState = std::vector<bool>(_channelNum, true);
     _outputState = std::vector<int>(_channelNum, _emptyAction.getState());
     _stateQueue.resize(_channelNum);
@@ -166,6 +163,9 @@ CmdPanel::CmdPanel(std::vector<KeyAction*> events,
             break;
         }
     }
+
+    _keyCmd.c = "";
+    _keyCmd.keyPress = KeyPress::RELEASE;
 }
 
 CmdPanel::~CmdPanel(){
@@ -189,13 +189,21 @@ void CmdPanel::_run(){
     }
 }
 
-void CmdPanel::_updateState(){
-// std::cout << "update state: " << _state << std::endl;
+void CmdPanel::_updateStateValue(){
+    // valueAction允许共用按键，例如空格停止
+    for(int i(0); i<_valueNum; ++i){
+        _valueEvents.at(i).handleCmd(_keyCmd);
+    }
+
+    _state = _emptyAction.getState();
+
+    for(int i(0); i<_stateNum; ++i){
+        if(_stateEvents.at(i).handleCmd(_keyCmd, _state)){
+            break;
+        }
+    }
+
     for(int i(0); i<_channelNum; ++i){
-        // if((_outputState.at(i) != _state) && _getState.at(i)){
-        //     _getState.at(i) = false;
-        //     _outputState.at(i) = _state;
-        // }
         if((_stateQueue.at(i).size() == 0) ||
            (_stateQueue.at(i).back() != _state) ){
             _stateQueue.at(i).push_back(_state);
@@ -204,9 +212,18 @@ void CmdPanel::_updateState(){
 }
 
 void CmdPanel::_releaseKeyboard(){
-    _keyCmd.c = "";
-    _cPast = _keyCmd.c;
-    
+    if(_cmdPanelType == CmdPanelType::CONTINUE_INPUT){
+        _keyCmd.c = "";
+        _cPast = _keyCmd.c;
+        _keyCmd.keyPress = KeyPress::RELEASE;
+    }
+    else if(_cmdPanelType == CmdPanelType::SWITCH_INPUT){
+        if(_keyCmd.keyPress != KeyPress::RELEASE){
+            _keyCmd.keyPress = KeyPress::REPEAT;
+            _updateStateValue();
+        }
+    }
+
     _state = _emptyAction.getState();
 
     // valueAction需要停止命令
@@ -216,34 +233,23 @@ void CmdPanel::_releaseKeyboard(){
 }
 
 void CmdPanel::_pressKeyboard(){
-// std::cout << "c: " << _keyCmd.c << ", _cPast: " << _cPast << std::endl;
-    if(strEqual(_keyCmd.c, _cPast)){
-        _keyCmd.keyPress = KeyPress::REPEAT;
-    }else{
-        _keyCmd.keyPress = KeyPress::PRESS;
+    if(_cmdPanelType == CmdPanelType::CONTINUE_INPUT){
+        if(strEqual(_keyCmd.c, _cPast)){
+            _keyCmd.keyPress = KeyPress::REPEAT;
+        }else{
+            _keyCmd.keyPress = KeyPress::PRESS;
+        }
+        _cPast = _keyCmd.c;
     }
-    _cPast = _keyCmd.c;
-
-    // valueAction允许共用按键，例如空格停止
-    // bool acted = false;
-    for(int i(0); i<_valueNum; ++i){
-        // acted = acted || _valueEvents.at(i).handleCmd(_keyCmd);
-        _valueEvents.at(i).handleCmd(_keyCmd);
-    }
-
-// std::cout << "_keyCmd: " << (int)_keyCmd.keyPress << std::endl;
-    for(int i(0); i<_stateNum; ++i){
-        if(_stateEvents.at(i).handleCmd(_keyCmd, _state)){
-// std::cout << "true"  << std::endl;
-            return;
+    else if(_cmdPanelType == CmdPanelType::SWITCH_INPUT){
+        if(_keyCmd.keyPress != KeyPress::RELEASE){
+            _keyCmd.keyPress = KeyPress::RELEASE;
+        }else{
+            _keyCmd.keyPress = KeyPress::PRESS;
         }
     }
 
-    _state = _emptyAction.getState();
-//     if(!acted){
-// std::cout << "acted: " << (int)acted << std::endl;
-//         _releaseKeyboard();
-//     }
+    _updateStateValue();
 
 }
 

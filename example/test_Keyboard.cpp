@@ -23,6 +23,7 @@ enum class TestEnum{
 void func0(Keyboard* key){
     // key->getState(0);
     std::cout << "func0 state: " << key->getState(0) << std::endl;
+    std::cout << "value: " << key->getValues().at(0) << std::endl;
 }
 
 void func1(Keyboard* key){

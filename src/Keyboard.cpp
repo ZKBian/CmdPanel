@@ -9,7 +9,7 @@
 
 Keyboard::Keyboard(std::vector<KeyAction*> events, 
     EmptyAction emptyAction, size_t channelNum, double dt)
-    : CmdPanel(events, emptyAction, channelNum, dt){
+    : CmdPanel(events, emptyAction, CmdPanelType::CONTINUE_INPUT, channelNum, dt){
 
     tcgetattr( fileno( stdin ), &_oldSettings );
     _newSettings = _oldSettings;
@@ -52,7 +52,6 @@ void Keyboard::_extractCmd(){
         _keyCmd.c = _c;
     }
 
-    _pressKeyboard();
 }
 
 void Keyboard::_pauseKey(){
@@ -78,11 +77,12 @@ void Keyboard::_read(){
     if(res > 0){
         int m = read( fileno( stdin ), &_c, 1 );
         _extractCmd();
+        _pressKeyboard();
     }else{
         _releaseKeyboard();
     }
 
-    _updateState();
+    // _updateState();
 }
 
 std::string Keyboard::getString(std::string slogan){
