@@ -14,8 +14,8 @@ enum class KeyPress{
 enum class ActionType{
     EMPTY,
     STATE,
-    VALUE,
-    JOYSTICK
+    KEYVALUE,
+    JOYSTICKVALUE
 };
 
 enum class JoystickKey{
@@ -23,16 +23,16 @@ enum class JoystickKey{
     RIGHT_STICK,
     D_PAD,
 
-    LB,
-    RB,
-    LT,
-    RT,
-    BACK,
-    START,
-    A,
-    B,
-    X,
-    Y
+    // LB,
+    // RB,
+    // LT,
+    // RT,
+    // BACK,
+    // START,
+    // A,
+    // B,
+    // X,
+    // Y
 };
 
 struct KeyCmd{
@@ -78,26 +78,46 @@ private:
 
 };
 
+/*
+抽象类，包含按键改变数值与摇杆改变数值
+*/
+class ValueAction : public KeyAction{
+public:
+    ValueAction(ActionType type):KeyAction(type){};
+    virtual ~ValueAction(){}
+
+    virtual bool handleCmd(KeyCmd keyCmd){return false;};
+    virtual void setDt(double dt){};
+    virtual double getValue(){return 0.0;};
+    virtual double getDValue(){return 0.0;};
+    virtual void setValue(double value){};
+    virtual std::string getKeyName(){};
+    virtual void updateStickValue(double stickValue){};
+protected:
+    double _value;
+};
+
 /* 
 必须为长按, deltaValue为每秒改变量 
 valueAction允许共用按键，例如空格停止
 但是正反转、停止键不可重复
 */
-class ValueAction : public KeyAction{
+class KeyValueAction : public ValueAction{
 public:    
-    ValueAction(std::string cUp, std::string cDown, double deltaValue, double initValue = 0.0);
-    ValueAction(std::string cUp, std::string cDown, std::string cGoZero, double deltaValue, double initValue = 0.0);
-    ValueAction(std::string cUp, std::string cDown, double deltaValue, double limit1, double limit2, double initValue = 0.0);
-    ValueAction(std::string cUp, std::string cDown, std::string cGoZero, double deltaValue, double limit1, double limit2, double initValue = 0.0);
+    KeyValueAction(std::string cUp, std::string cDown, double deltaValue, double initValue = 0.0);
+    KeyValueAction(std::string cUp, std::string cDown, std::string cGoZero, double deltaValue, double initValue = 0.0);
+    KeyValueAction(std::string cUp, std::string cDown, double deltaValue, double limit1, double limit2, double initValue = 0.0);
+    KeyValueAction(std::string cUp, std::string cDown, std::string cGoZero, double deltaValue, double limit1, double limit2, double initValue = 0.0);
 
-    ~ValueAction(){};
+    ~KeyValueAction(){};
+
     bool handleCmd(KeyCmd keyCmd);
     void setDt(double dt);
     double getValue();
     double getDValue();
-    double setValue(double value){_value = value;}
+    void setValue(double value){_value = value;}
+    std::string getKeyName(){return _upCmdSet.c + "_" + _downCmdSet.c + "_" + _goZeroCmdSet.c;}
 private:
-    double _value;
     double _changeDirection;
     double _dV = 0.0;
     double _dt = 0.0;
@@ -109,18 +129,26 @@ private:
     KeyCmd _upCmdSet;
     KeyCmd _downCmdSet;
     KeyCmd _goZeroCmdSet;
-
 };
 
 /*
 适用于手柄上的摇杆
 */
-class JoystickAction : public KeyAction{
+class JoystickValueAction : public ValueAction{
 public:
-    JoystickAction(JoystickKey key);
-    ~JoystickAction(){};
-private:
+    JoystickValueAction(std::string stickName, double limit1 = -1.0, double limit2 = 1.0);
+    ~JoystickValueAction(){};
 
+    double getValue();
+    std::string getKeyName(){return _stickName;}
+    void updateStickValue(double stickValue){_stickValue = stickValue;};
+
+private:
+    double _limNegative;
+    double _limPositive;
+
+    std::string _stickName;
+    double _stickValue;     // [-1, 1]
 };
 
 

@@ -14,13 +14,13 @@
 #include <sys/ioctl.h>
 #include <mutex>
 #include "multiThread/Loop.h"
-#include "CmdPanel/include/CmdPanel.h"
+#include "CmdPanel/include/ContinuousInputCmdPanel.h"
 #include "time/AbsoluteTimer.h"
 
 // #define runTimeStep  0.002  // second, 500Hz
 // #define readTimeStep 0.05   // second, this value cannot change
 
-class Keyboard : public CmdPanel{
+class Keyboard : public ContinuousInputCmdPanel{
 public:
     Keyboard(std::vector<KeyAction*> events, 
         EmptyAction emptyAction, size_t channelNum = 1, double dt = 0.002);

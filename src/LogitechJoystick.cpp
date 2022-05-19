@@ -1,11 +1,12 @@
 #include <fcntl.h>
 
 #include "CmdPanel/LogitechJoystick.h"
+#include "time/timeMarker.h"
 
 LogitechJoystick::LogitechJoystick(std::string devicePath,
         std::vector<KeyAction*> events, 
         EmptyAction emptyAction, size_t channelNum, double dt)
-        : CmdPanel(events, emptyAction, CmdPanelType::SWITCH_INPUT, channelNum, dt){
+        : CmdPanel(events, emptyAction, channelNum, dt){
     _openDevice(devicePath);
     _init();
     _start();
@@ -13,7 +14,7 @@ LogitechJoystick::LogitechJoystick(std::string devicePath,
 
 LogitechJoystick::LogitechJoystick(std::vector<KeyAction*> events, 
         EmptyAction emptyAction, size_t channelNum, double dt)
-        : CmdPanel(events, emptyAction, CmdPanelType::SWITCH_INPUT, channelNum, dt){
+        : CmdPanel(events, emptyAction, channelNum, dt){
     _openDevice("/dev/input/js0");
     _init();
     _start();
@@ -38,11 +39,12 @@ void LogitechJoystick::_openDevice(std::string devicePath, bool blocking){
 void LogitechJoystick::_init(){
     _clearBuffer();
 
-    _keyNum = 10;
-    for(int i(0); i<_keyNum; ++i){
-        _keyStates.push_back(KeyPress::RELEASE);
-        _keyStatesPast.push_back(KeyPress::RELEASE);
-    }
+    _clickTime = 0.5;
+
+    _combineKeyID.push_back(_keyStates.LB);
+    _combineKeyID.push_back(_keyStates.LT);
+    _combineKeyID.push_back(_keyStates.RB);
+    _combineKeyID.push_back(_keyStates.RT);
 }
 
 void LogitechJoystick::_clearBuffer(){
@@ -67,62 +69,176 @@ bool LogitechJoystick::_sample(){
 }
 
 void LogitechJoystick::_read(){
+    _updateJoystick();
+
+// std::cout << "A: " << (int)_keyStates.keyStates.at(_keyStates.A).press << std::endl;
+// std::cout << "left X: " << _keyStates.leftStickX << ", left Y: " << _keyStates.leftStickY << std::endl;
+// std::cout << "right X: " << _keyStates.rightStickX << ", right Y: " << _keyStates.rightStickY << std::endl;
+// std::cout << "Dpad X: " << _keyStates.DpadX << ", Dpad Y: " << _keyStates.DpadY << std::endl;
+
+
     if(_sample()){
-        _extractCmd();
-        _pressKeyboard();
+        _extractMsg();
+        // _pressKeyboard();
     }else{
-        _releaseKeyboard();
+        // _releaseKeyboard();
     }
 
-    // _updateState();
+    _checkCmdUpdated();
+    _updateStateValue();
 }
 
-void LogitechJoystick::_extractCmd(){
+void LogitechJoystick::_extractMsg(){
     if(_msg.isButton()){
 // std::cout << "butt number: " << (int)(_msg.number) << std::endl;
         switch ((int)_msg.number){
         case 0:
-            _keyCmd.c = "X";
+            _updatePressState(_keyStates.keyStates.at(_keyStates.X));
             break;
         case 1:
-            _keyCmd.c = "A";
+            _updatePressState(_keyStates.keyStates.at(_keyStates.A));
             break;
         case 2:
-            _keyCmd.c = "B";
+            _updatePressState(_keyStates.keyStates.at(_keyStates.B));
             break;
         case 3:
-            _keyCmd.c = "Y";
+            _updatePressState(_keyStates.keyStates.at(_keyStates.Y));
             break;
         case 4:
-            _keyCmd.c = "LB";
+            _updatePressState(_keyStates.keyStates.at(_keyStates.LB));
             break;            
         case 5:
-            _keyCmd.c = "RB";
+            _updatePressState(_keyStates.keyStates.at(_keyStates.RB));
             break;
         case 6:
-            _keyCmd.c = "LT";
+            _updatePressState(_keyStates.keyStates.at(_keyStates.LT));
             break;
         case 7:
-            _keyCmd.c = "RT";
+            _updatePressState(_keyStates.keyStates.at(_keyStates.RT));
             break;
         case 8:
-            _keyCmd.c = "BACK";
+            _updatePressState(_keyStates.keyStates.at(_keyStates.BACK));
             break;
         case 9:
-            _keyCmd.c = "START";
+            _updatePressState(_keyStates.keyStates.at(_keyStates.START));
             break;
         default:
             break;
         }
-        _updatePressState();
     }
     else if(_msg.isAxis()){
-std::cout << "axis number: " << (int)(_msg.number) << std::endl;
-
+        switch ((int)_msg.number){
+        case 0:
+            _keyStates.leftStickX = (_msg.value)/double(_msg.MAX_AXES_VALUE);
+            break;
+        case 1:
+            _keyStates.leftStickY = -(_msg.value)/double(_msg.MAX_AXES_VALUE);
+            break;
+        case 2:
+            _keyStates.rightStickX = (_msg.value)/double(_msg.MAX_AXES_VALUE);
+            break;
+        case 3:
+            _keyStates.rightStickY = -(_msg.value)/double(_msg.MAX_AXES_VALUE);
+            break;
+        case 4:
+            _keyStates.DpadX = (_msg.value)/double(_msg.MAX_AXES_VALUE);
+            break;
+        case 5:
+            _keyStates.DpadY = -(_msg.value)/double(_msg.MAX_AXES_VALUE);
+            break;
+        default:
+            break;
+        }
+        _updateStickAction();
     }
 
 }
 
-void LogitechJoystick::_updatePressState(){
+void LogitechJoystick::_updateJoystick(){
+    for(int i(0); i<_keyStates.keyNum; ++i){
+        _checkKeyRepeat(_keyStates.keyStates.at(i));
+    }
+}
 
+void LogitechJoystick::_updatePressState(KeyState &currentState){
+    currentState.time = getTimeSecond();
+    switch (currentState.press){
+    case KeyPress::RELEASE:
+        currentState.press = KeyPress::PRESS;
+        return;
+    case KeyPress::PRESS:
+    case KeyPress::REPEAT:
+        currentState.press = KeyPress::RELEASE;
+        _keyCmd.c = currentState.keyName;
+        _keyCmd.keyPress = KeyPress::RELEASE;
+        _updateStateValue();
+        return;
+    default:
+        return;
+    }
+}
+
+void LogitechJoystick::_checkKeyRepeat(KeyState &currentState){
+    if(currentState.press == KeyPress::PRESS){
+        if(getTimeSecond() - currentState.time > _clickTime){
+            currentState.press = KeyPress::REPEAT;
+        }
+    }
+}
+
+void LogitechJoystick::_checkCmdUpdated(){
+    /*single key*/
+    for(int i(0); i<_keyStates.keyNum; ++i){
+        if((_keyStates.keyStates.at(i).press != KeyPress::RELEASE)
+            && _keyStates.otherKeyIs(i, KeyPress::RELEASE)){
+            _keyCmd.c = _keyStates.keyStates.at(i).keyName;
+            _keyCmd.keyPress = _keyStates.keyStates.at(i).press;
+        }
+    }
+    _updateStateValue();
+
+    /*two keys combined*/
+    for(int j(0); j<_combineKeyID.size(); ++j){
+        if((_keyStates.keyStates.at(_combineKeyID.at(j)).press != KeyPress::RELEASE)
+            && !_keyStates.otherKeyIs(_combineKeyID.at(j), KeyPress::RELEASE)){
+            for(int i(0); i<_keyStates.keyNum; ++i){
+                if((_combineKeyID.at(j) != i) 
+                    && (_keyStates.keyStates.at(i).press != KeyPress::RELEASE)){
+                    _keyCmd.c = _keyStates.keyStates.at(_combineKeyID.at(j)).keyName 
+                        + "_" + _keyStates.keyStates.at(i).keyName;
+                    _keyCmd.keyPress = KeyPress::PRESS;
+                }
+            }
+        }
+    }
+    _updateStateValue();
+
+}
+
+void LogitechJoystick::_updateStickAction(){
+    for(int i(0); i<_valueNum; ++i){
+        if(_valueEvents.at(i).getType() == ActionType::JOYSTICKVALUE){
+            if(_valueEvents.at(i).getKeyName() == "LeftStickX"){
+                _valueEvents.at(i).updateStickValue(_keyStates.leftStickX);
+            }
+            else if(_valueEvents.at(i).getKeyName() == "LeftStickY"){
+                _valueEvents.at(i).updateStickValue(_keyStates.leftStickY);
+            }
+            else if(_valueEvents.at(i).getKeyName() == "RightStickX"){
+                _valueEvents.at(i).updateStickValue(_keyStates.rightStickX);
+            }
+            else if(_valueEvents.at(i).getKeyName() == "RightStickY"){
+                _valueEvents.at(i).updateStickValue(_keyStates.rightStickY);
+            }
+            else if(_valueEvents.at(i).getKeyName() == "DpadX"){
+                _valueEvents.at(i).updateStickValue(_keyStates.DpadX);
+            }
+            else if(_valueEvents.at(i).getKeyName() == "DpadY"){
+                _valueEvents.at(i).updateStickValue(_keyStates.DpadY);
+            }
+            else{
+                std::cout << "[ERROR] LogitechJoystick::_updateStick, the stickName of JoystickValueAction can only be LeftStickX, LeftStickY, RightStickX, RightStickY, DpadX, DpadY" << std::endl;
+            }
+        }
+    }
 }

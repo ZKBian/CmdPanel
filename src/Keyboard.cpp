@@ -9,7 +9,7 @@
 
 Keyboard::Keyboard(std::vector<KeyAction*> events, 
     EmptyAction emptyAction, size_t channelNum, double dt)
-    : CmdPanel(events, emptyAction, CmdPanelType::CONTINUE_INPUT, channelNum, dt){
+    : ContinuousInputCmdPanel(events, emptyAction, channelNum, dt){
 
     tcgetattr( fileno( stdin ), &_oldSettings );
     _newSettings = _oldSettings;

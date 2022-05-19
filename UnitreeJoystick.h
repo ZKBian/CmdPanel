@@ -2,14 +2,14 @@
 #define BIANLIB_UNITREEJOYSTICK_H
 
 // currently used on B1 SDK
-#include "CmdPanel/include/CmdPanel.h"
+#include "CmdPanel/include/ContinuousInputCmdPanel.h"
 #include "UDPPort/UDPPort.h"
 #include "CmdPanel/include/unitree_legged_sdk_B1/unitree_joystick.h"
 #include "CmdPanel/include/unitree_legged_sdk_B1/comm.h"
 
 using namespace UNITREE_LEGGED_SDK;
 
-class UnitreeJoystick : public CmdPanel{
+class UnitreeJoystick : public ContinuousInputCmdPanel{
 public:
     UnitreeJoystick(std::vector<KeyAction*> events, 
         EmptyAction emptyAction, size_t channelNum = 1,

@@ -19,11 +19,11 @@ void func1(LogitechJoystick* key){
 
 int main(){
     std::vector<KeyAction*> action;
-    action.push_back(new StateAction("X", (int)TestEnum::enum1));
-    action.push_back(new StateAction("RT", (int)TestEnum::enum2));
+    action.push_back(new StateAction("A", (int)TestEnum::enum1));
+    action.push_back(new StateAction("RT_B", (int)TestEnum::enum2));
     action.push_back(new StateAction("LB", (int)TestEnum::enum3));
-    // action.push_back(new ValueAction("q", "a", "z", 1.0, -3.0, 2.0));
-    action.push_back(new ValueAction("A", "B", 1.0));
+    action.push_back(new JoystickValueAction("LeftStickX"));
+    action.push_back(new KeyValueAction("A", "B", 1.0));
 
     EmptyAction emptyAction((int)TestEnum::none);
 

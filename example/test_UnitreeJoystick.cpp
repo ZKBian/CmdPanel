@@ -17,8 +17,8 @@ int main(){
     action.push_back(new StateAction("r1", (int)TestEnum::enum4));
     action.push_back(new StateAction("r2", (int)TestEnum::enum5));
 
-    action.push_back(new ValueAction("q", "a", "z", 1.0, -3.0, 2.0));
-    action.push_back(new ValueAction("up", "down", 1.0));
+    action.push_back(new KeyValueAction("q", "a", "z", 1.0, -3.0, 2.0));
+    action.push_back(new KeyValueAction("up", "down", 1.0));
 
     EmptyAction emptyAction((int)TestEnum::none);
 

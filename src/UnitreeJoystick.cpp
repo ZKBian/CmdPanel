@@ -2,7 +2,7 @@
 
 UnitreeJoystick::UnitreeJoystick(std::vector<KeyAction*> events, 
     EmptyAction emptyAction, size_t channelNum, double dt)
-    : CmdPanel(events, emptyAction, CmdPanelType::CONTINUE_INPUT, channelNum, dt){
+    : ContinuousInputCmdPanel(events, emptyAction, channelNum, dt){
     _udp = new UDPPort("192.168.123.220", 8082, 8081, sizeof(HighState), BlockYN::NO, 500000);
     // _udp = new UDPPort("192.168.123.220", 8082, 8081, 143, BlockYN::NO, 500000);
 
