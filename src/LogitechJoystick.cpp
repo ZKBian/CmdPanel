@@ -216,29 +216,28 @@ void LogitechJoystick::_checkCmdUpdated(){
 }
 
 void LogitechJoystick::_updateStickAction(){
-    for(int i(0); i<_valueNum; ++i){
-        if(_valueEvents.at(i).getType() == ActionType::JOYSTICKVALUE){
-            if(_valueEvents.at(i).getKeyName() == "LeftStickX"){
-                _valueEvents.at(i).updateStickValue(_keyStates.leftStickX);
-            }
-            else if(_valueEvents.at(i).getKeyName() == "LeftStickY"){
-                _valueEvents.at(i).updateStickValue(_keyStates.leftStickY);
-            }
-            else if(_valueEvents.at(i).getKeyName() == "RightStickX"){
-                _valueEvents.at(i).updateStickValue(_keyStates.rightStickX);
-            }
-            else if(_valueEvents.at(i).getKeyName() == "RightStickY"){
-                _valueEvents.at(i).updateStickValue(_keyStates.rightStickY);
-            }
-            else if(_valueEvents.at(i).getKeyName() == "DpadX"){
-                _valueEvents.at(i).updateStickValue(_keyStates.DpadX);
-            }
-            else if(_valueEvents.at(i).getKeyName() == "DpadY"){
-                _valueEvents.at(i).updateStickValue(_keyStates.DpadY);
-            }
-            else{
-                std::cout << "[ERROR] LogitechJoystick::_updateStick, the stickName of JoystickValueAction can only be LeftStickX, LeftStickY, RightStickX, RightStickY, DpadX, DpadY" << std::endl;
-            }
+    for(int i(0); i<_joystickValueNum; ++i){
+        if(_joystickValueEvents.at(i).getKeyName() == "LeftStickX"){
+            _joystickValueEvents.at(i).updateStickValue(_keyStates.leftStickX);
+// std::cout << "_keyStates.leftStickX: " << _keyStates.leftStickX << std::endl;
+        }
+        else if(_joystickValueEvents.at(i).getKeyName() == "LeftStickY"){
+            _joystickValueEvents.at(i).updateStickValue(_keyStates.leftStickY);
+        }
+        else if(_joystickValueEvents.at(i).getKeyName() == "RightStickX"){
+            _joystickValueEvents.at(i).updateStickValue(_keyStates.rightStickX);
+        }
+        else if(_joystickValueEvents.at(i).getKeyName() == "RightStickY"){
+            _joystickValueEvents.at(i).updateStickValue(_keyStates.rightStickY);
+        }
+        else if(_joystickValueEvents.at(i).getKeyName() == "DpadX"){
+            _joystickValueEvents.at(i).updateStickValue(_keyStates.DpadX);
+        }
+        else if(_joystickValueEvents.at(i).getKeyName() == "DpadY"){
+            _joystickValueEvents.at(i).updateStickValue(_keyStates.DpadY);
+        }
+        else{
+            std::cout << "[ERROR] LogitechJoystick::_updateStick, the stickName of JoystickValueAction can only be LeftStickX, LeftStickY, RightStickX, RightStickY, DpadX, DpadY" << std::endl;
         }
     }
 }

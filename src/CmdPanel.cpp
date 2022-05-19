@@ -32,17 +32,27 @@ CmdPanel::CmdPanel(std::vector<KeyAction*> events,
             _stateEvents.push_back(*(StateAction*)events.at(i));
             break;
         case ActionType::KEYVALUE:
-        case ActionType::JOYSTICKVALUE:
-            ++_valueNum;
-            _valueEvents.push_back(*(ValueAction*)events.at(i));
-            _valueEvents.at(_valueEvents.size()-1).setDt(dt);
-            _values.push_back(_valueEvents.at(_valueEvents.size()-1).getValue());
-            _dValues.push_back(_valueEvents.at(_valueEvents.size()-1).getDValue());
+            _keyValueEvents.push_back(*(KeyValueAction*)events.at(i));
+            _keyValueEvents.at(_keyValueEvents.size()-1).setDt(dt);
+            _keyValueEvents.at(_keyValueEvents.size()-1).setID(_valueTotalNum);
+            _values.push_back(_keyValueEvents.at(_keyValueEvents.size()-1).getValue());
+            _dValues.push_back(_keyValueEvents.at(_keyValueEvents.size()-1).getDValue());
+            ++_keyValueNum;
+            ++_valueTotalNum;
             break;
+        case ActionType::JOYSTICKVALUE:
+            _joystickValueEvents.push_back(*(JoystickValueAction*)events.at(i));
+            _joystickValueEvents.at(_joystickValueEvents.size()-1).setID(_valueTotalNum);
+            _values.push_back(_joystickValueEvents.at(_joystickValueEvents.size()-1).getValue());
+            _dValues.push_back(0.0);
+            ++_joystickValueNum;
+            ++_valueTotalNum;
         default:
             break;
         }
     }
+
+    // _valueTotalNum = _keyValueNum + _joystickValueNum;
 
     _keyCmd.c = "";
     _keyCmd.keyPress = KeyPress::RELEASE;
@@ -64,12 +74,12 @@ void CmdPanel::_start(){
 
 void CmdPanel::_updateStateValue(){
     // valueAction允许共用按键，例如空格停止
-    for(int i(0); i<_valueNum; ++i){
-        _valueEvents.at(i).handleCmd(_keyCmd);
+    for(int i(0); i<_keyValueNum; ++i){
+        _keyValueEvents.at(i).handleCmd(_keyCmd);
     }
 
+    // state
     _state = _emptyAction.getState();
-
     for(int i(0); i<_stateNum; ++i){
         if(_stateEvents.at(i).handleCmd(_keyCmd, _state)){
             break;
@@ -124,8 +134,8 @@ std::string CmdPanel::getString(std::string slogan){
 }
 
 void CmdPanel::setValue(std::vector<double> values){
-    if(values.size() == _valueNum){
-        for(int i(0); i<_valueNum; ++i){
+    if(values.size() == _valueTotalNum){
+        for(int i(0); i<_valueTotalNum; ++i){
             setValue(values.at(i), i);
         }
     }else{
@@ -134,19 +144,29 @@ void CmdPanel::setValue(std::vector<double> values){
 }
 
 void CmdPanel::setValue(double value, size_t id){
-    if(id >= _valueNum){
+    if(id >= _valueTotalNum){
         std::cout << "[ERROR] CmdPanel::setValue, the id is " << id 
-        << ", but the CmdPanel only has " << _valueNum << " values" << std::endl;
+        << ", but the CmdPanel only has " << _valueTotalNum << " values" << std::endl;
     }
     _values.at(id) = value;
     _dValues.at(id) = 0.0;
-    _valueEvents.at(id).setValue(value);
+
+    for(int i(0); i<_keyValueNum; ++i){
+        if(_keyValueEvents.at(id).getID() == id){
+            _keyValueEvents.at(id).setValue(value);
+            break;
+        }
+    }
 }
 
 void CmdPanel::_run(){
-    for(int i(0); i<_valueNum; ++i){
-        _values.at(i) = _valueEvents.at(i).getValue();
-        _dValues.at(i)= _valueEvents.at(i).getDValue();
+    for(int i(0); i<_keyValueNum; ++i){
+        _values.at(_keyValueEvents.at(i).getID()) = _keyValueEvents.at(i).getValue();
+        _dValues.at(_keyValueEvents.at(i).getID())= _keyValueEvents.at(i).getDValue();
+    }
+    for(int i(0); i<_joystickValueNum; ++i){
+        _values.at(_joystickValueEvents.at(i).getID()) = _joystickValueEvents.at(i).getValue();
+        _dValues.at(_joystickValueEvents.at(i).getID()) = 0.0;
     }
 }
 

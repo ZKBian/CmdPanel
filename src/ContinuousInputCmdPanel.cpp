@@ -19,8 +19,8 @@ void ContinuousInputCmdPanel::_releaseKeyboard(){
     _state = _emptyAction.getState();
 
     // valueAction需要停止命令
-    for(int i(0); i<_valueNum; ++i){
-        _valueEvents.at(i).handleCmd(_keyCmd);
+    for(int i(0); i<_keyValueNum; ++i){
+        _keyValueEvents.at(i).handleCmd(_keyCmd);
     }
 
     _updateStateValue();

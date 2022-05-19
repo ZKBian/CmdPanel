@@ -93,8 +93,12 @@ public:
     virtual void setValue(double value){};
     virtual std::string getKeyName(){};
     virtual void updateStickValue(double stickValue){};
+
+    void setID(size_t id){_valueID = id;}
+    size_t getID(){return _valueID;}
 protected:
     double _value;
+    size_t _valueID;
 };
 
 /* 

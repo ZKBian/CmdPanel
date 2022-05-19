@@ -35,13 +35,17 @@ protected:
     static void* _runStatic(void* obj);
     LoopFunc *_runThread;
 
+    /*为了防止Action被销毁，这里没有用指针，因此不可以使用多态*/
     std::vector<StateAction> _stateEvents;
-    std::vector<ValueAction> _valueEvents;
+    std::vector<KeyValueAction> _keyValueEvents;
+    std::vector<JoystickValueAction> _joystickValueEvents;
 
     EmptyAction _emptyAction;
     size_t _actionNum = 0;
     size_t _stateNum = 0;
-    size_t _valueNum = 0;
+    size_t _valueTotalNum = 0;
+    size_t _keyValueNum = 0;
+    size_t _joystickValueNum = 0;
     size_t _channelNum;
     std::vector<double> _values;
     std::vector<double> _dValues;

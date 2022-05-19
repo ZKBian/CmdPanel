@@ -10,7 +10,8 @@ enum class TestEnum{
 void func0(LogitechJoystick* key){
     // key->getState(0);
     std::cout << "func0 state: " << key->getState(0) << std::endl;
-    std::cout << "value: " << key->getValues().at(0) << std::endl;
+    std::cout << "value0: " << key->getValues().at(0)
+        << ", value1: " << key->getValues().at(1) << std::endl;
 }
 
 void func1(LogitechJoystick* key){
@@ -38,7 +39,7 @@ int main(){
     LoopFunc loop1("loop1", 0.5, boost::bind(&func1, &joystick));
 
     loop0.start();
-    // loop1.start();
+    loop1.start();
 
     while(true){}
 

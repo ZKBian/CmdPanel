@@ -132,7 +132,7 @@ double JoystickValueAction::getValue(){
     if(_stickValue >= 0){
         _value = _stickValue * _limPositive;
     }else{
-        _value = _stickValue * _limNegative;
+        _value = - _stickValue * _limNegative;
     }
 
     return _value;
