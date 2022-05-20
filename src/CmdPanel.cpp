@@ -1,5 +1,6 @@
 #include "CmdPanel/include/CmdPanel.h"
 #include "CmdPanel/include/KeyAction.h"
+#include <iostream>
 
 /***********************/
 /*      CmdPanel       */

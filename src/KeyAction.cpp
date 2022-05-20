@@ -1,4 +1,6 @@
 #include "CmdPanel/include/KeyAction.h"
+#include "mathLib/mathTools.h"
+#include <iostream>
 
 /***********************/
 /*      KeyAction      */
@@ -98,13 +100,13 @@ double KeyValueAction::getValue(){
     _value += _changeDirection * _dV;
 
     if(_hasLim){
-        _value = saturation(_value, _lim1, _lim2);
+        _value = bianLib::saturation(_value, _lim1, _lim2);
     }
     return _value;
 }
 
 double KeyValueAction::getDValue(){
-    if((_hasLim) && !inInterval(_value, _lim1, _lim2)){
+    if((_hasLim) && !bianLib::inInterval(_value, _lim1, _lim2)){
         return 0.0;
     }
 

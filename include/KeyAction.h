@@ -2,7 +2,7 @@
 #define BIANLIB_KEYACTION_H
 
 #include <string>
-#include <mathLib/mathTools.h>
+// #include <mathLib/mathTools.h>
 #include <common/judgeEqual.h>
 
 enum class KeyPress{
