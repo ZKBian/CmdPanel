@@ -91,7 +91,7 @@ public:
     virtual double getValue(){return 0.0;};
     virtual double getDValue(){return 0.0;};
     virtual void setValue(double value){};
-    virtual std::string getKeyName(){};
+    virtual std::string getKeyName(){return "NONE";};
     virtual void updateStickValue(double stickValue){};
 
     void setID(size_t id){_valueID = id;}
